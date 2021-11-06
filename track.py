@@ -178,13 +178,13 @@ def analyze_camera(model, framework, resolution, lite):
     
     return coordinates
 
-def analyze_image(file_path, model, framework, resolution, lite):
+def analyze_image(image_path_or_data, model, framework, resolution, lite):
     """
     Predict pose coordinates on supplied image.
     
     Args:
-        file_path: path
-            System path of image to analyze
+        image_path_or_data: path
+            System path of image to analyze or in memory image ndarray
         model: deep learning model
             Initialized EfficientPose model to utilize (RT, I, II, III, IV, RT_Lite, I_Lite or II_Lite)
         framework: string
@@ -197,12 +197,17 @@ def analyze_image(file_path, model, framework, resolution, lite):
     Returns:
         Predicted pose coordinates in the supplied image.
     """
-    
-    # Load image
-    from PIL import Image
+
     start_time = time.time()
-    image = np.array(Image.open(file_path))
-    image_height, image_width = image.shape[:2]
+    try:
+        image = image_path_or_data
+        image_height, image_width = image.shape[:2]
+    except AttributeError:
+        # Load image
+        from PIL import Image
+        image = np.array(Image.open(image_path_or_data))
+        image_height, image_width = image.shape[:2]
+
     batch = np.expand_dims(image, axis=0)
 
     # Preprocess batch
@@ -472,7 +477,7 @@ def perform_tracking(video, file_path, model_name, framework_name, visualize, st
             Flag to create CSV file with predicted coordinates
             
     Returns:
-        Boolean expressing if tracking was successfully performed.
+        coordinates
     """
     
     # VERIFY FRAMEWORK AND MODEL VARIANT
@@ -508,7 +513,7 @@ def perform_tracking(video, file_path, model_name, framework_name, visualize, st
     if store and coordinates:
         save(video, file_path, coordinates)
         
-    return True
+    return coordinates
         
 def main(file_path, model_name, framework_name, visualize, store):
     """
