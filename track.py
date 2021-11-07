@@ -4,8 +4,10 @@ from os.path import join, normpath
 from pymediainfo import MediaInfo
 import numpy as np
 import time
+import pkg_resources
 
-from utils import helpers
+from .utils import helpers
+
 
 def get_model(framework, model_variant):
     """
@@ -20,13 +22,14 @@ def get_model(framework, model_variant):
     Returns:
         Initialized EfficientPose model and corresponding resolution.
     """
+    model_path = pkg_resources.resource_filename('efficientpose', 'models/')
     
     # Keras
     if framework in ['keras', 'k']:
         from tensorflow.keras.backend import set_learning_phase
         from tensorflow.keras.models import load_model
         set_learning_phase(0)
-        model = load_model(join('models', 'keras', 'EfficientPose{0}.h5'.format(model_variant.upper())), custom_objects={'BilinearWeights': helpers.keras_BilinearWeights, 'Swish': helpers.Swish(helpers.eswish), 'eswish': helpers.eswish, 'swish1': helpers.swish1})
+        model = load_model(join(model_path, 'keras', 'EfficientPose{0}.h5'.format(model_variant.upper())), custom_objects={'BilinearWeights': helpers.keras_BilinearWeights, 'Swish': helpers.Swish(helpers.eswish), 'eswish': helpers.eswish, 'swish1': helpers.swish1})
     
     # TensorFlow
     elif framework in ['tensorflow', 'tf']:
@@ -34,7 +37,7 @@ def get_model(framework, model_variant):
         from tensorflow.compat.v1 import GraphDef
         from tensorflow.compat.v1.keras.backend import get_session
         from tensorflow import import_graph_def
-        f = FastGFile(join('models', 'tensorflow', 'EfficientPose{0}.pb'.format(model_variant.upper())), 'rb')
+        f = FastGFile(join(model_path, 'tensorflow', 'EfficientPose{0}.pb'.format(model_variant.upper())), 'rb')
         graph_def = GraphDef()
         graph_def.ParseFromString(f.read())
         f.close()
@@ -45,7 +48,7 @@ def get_model(framework, model_variant):
     # TensorFlow Lite
     elif framework in ['tensorflowlite', 'tflite']:
         from tensorflow import lite
-        model = lite.Interpreter(model_path=join('models', 'tflite', 'EfficientPose{0}.tflite'.format(model_variant.upper())))
+        model = lite.Interpreter(model_path=join(model_path, 'tflite', 'EfficientPose{0}.tflite'.format(model_variant.upper())))
         model.allocate_tensors()
     
     # PyTorch
@@ -53,7 +56,7 @@ def get_model(framework, model_variant):
         from imp import load_source
         from torch import load, quantization, backends
         try:
-            MainModel = load_source('MainModel', join('models', 'pytorch', 'EfficientPose{0}.py'.format(model_variant.upper())))
+            MainModel = load_source('MainModel', join(model_path, 'pytorch', 'EfficientPose{0}.py'.format(model_variant.upper())))
         except:
             print('\n##########################################################################################################')
             print('Desired model "EfficientPose{0}Lite" not available in PyTorch. Please select among "RT", "I", "II", "III" or "IV".'.format(model_variant.split('lite')[0].upper()))
