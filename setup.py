@@ -15,7 +15,7 @@ setup(
         "sk-video==1.1.10",
         "opencv-python",
     ],
-    packages=['efficientpose'],
-    package_dir={'efficientpose': '.'},
+    packages=['efficientpose', 'efficientpose.utils'],
+    package_dir={'efficientpose': '.', 'efficientpose.utils': 'utils'},
     package_data={'efficientpose': ['models/keras/*', 'models/pytorch/*', 'models/tensorflow/*', 'models/tflite/*']}
 )
