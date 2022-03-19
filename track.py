@@ -340,15 +340,20 @@ def analyze(video, file_path, model, framework, resolution, lite):
     
     return coordinates
 
-def annotate_image(file_path, coordinates):
+def annotate_image(file_path, coordinates, out_file_path=None):
     """
     Annotates supplied image from predicted coordinates.
     
     Args:
-        file_path: path
+        file_path: path or file object
             System path of image to annotate
         coordinates: list
             Predicted body part coordinates for image
+        out_file_path: path or None
+            Output path of annotated image or None to return the image.
+            
+    Returns:
+        PIL image when out_file_path is None
     """
     
     # Load raw image
@@ -363,8 +368,11 @@ def annotate_image(file_path, coordinates):
     image = helpers.display_body_parts(image, image_draw, image_coordinates, image_height=image_height, image_width=image_width, marker_radius=int(image_side/150))
     image = helpers.display_segments(image, image_draw, image_coordinates, image_height=image_height, image_width=image_width, segment_width=int(image_side/100))
     
-    # Save annotated image
-    image.save(normpath(file_path.split('.')[0] + '_tracked.png'))
+    if not out_file_path:
+        return image
+    else:
+        # Save annotated image
+        image.save(out_file_path)
     
 def annotate_video(file_path, coordinates):
     """
