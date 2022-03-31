@@ -10,11 +10,13 @@ setup(
         "numpy",
         "tensorflow",  # ==2.5.1
         "pymediainfo==5.0.3",
-        "torch",  # ==1.8.1
         "scikit-image==0.17.2",
         "sk-video==1.1.10",
         "opencv-python",
     ],
+    extras_require = {
+        'torch_models':  ["torch"],
+    }    
     packages=['efficientpose', 'efficientpose.utils'],
     package_dir={'efficientpose': '.', 'efficientpose.utils': 'utils'},
     package_data={'efficientpose': ['models/keras/*', 'models/pytorch/*', 'models/tensorflow/*', 'models/tflite/*']}
