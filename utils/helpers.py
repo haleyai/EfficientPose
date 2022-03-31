@@ -3,6 +3,7 @@ import math
 from skimage.transform import rescale
 from skimage.util import pad as padding
 from scipy.ndimage.filters import gaussian_filter
+from tensorflow.keras.applications.imagenet_utils import preprocess_input as efficientnet_preprocess_input
 
 
 def resize(source_array, target_height, target_width):
