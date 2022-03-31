@@ -18,7 +18,7 @@ def get_model(framework, model_variant):
             Deep learning framework to use (Keras, TensorFlow, TensorFlow Lite or PyTorch)
         model_variant: string
             EfficientPose model to utilize (RT, I, II, III, IV, RT_Lite, I_Lite or II_Lite)
-            
+
     Returns:
         Initialized EfficientPose model and corresponding resolution.
     """
@@ -26,10 +26,17 @@ def get_model(framework, model_variant):
     
     # Keras
     if framework in ['keras', 'k']:
+        from utils import keras_helpers
         from tensorflow.keras.backend import set_learning_phase
         from tensorflow.keras.models import load_model
         set_learning_phase(0)
-        model = load_model(join(model_path, 'keras', 'EfficientPose{0}.h5'.format(model_variant.upper())), custom_objects={'BilinearWeights': helpers.keras_BilinearWeights, 'Swish': helpers.Swish(helpers.eswish), 'eswish': helpers.eswish, 'swish1': helpers.swish1})
+        model = load_model(join(model_path, 'keras', 'EfficientPose{0}.h5'.format(model_variant.upper())),
+                           custom_objects={
+                               'BilinearWeights': keras_helpers.keras_BilinearWeights,
+                               'Swish': keras_helpers.Swish(helpers.eswish),
+                               'eswish': keras_helpers.eswish,
+                               'swish1': keras_helpers.swish1
+                           })
     
     # TensorFlow
     elif framework in ['tensorflow', 'tf']:
@@ -53,10 +60,12 @@ def get_model(framework, model_variant):
     
     # PyTorch
     elif framework in ['pytorch', 'torch']:
+        from utils import torch_helpers
         from imp import load_source
         from torch import load, quantization, backends
         try:
-            MainModel = load_source('MainModel', join(model_path, 'pytorch', 'EfficientPose{0}.py'.format(model_variant.upper())))
+            MainModel = load_source('MainModel',
+                                    join(model_path, 'pytorch', 'EfficientPose{0}.py'.format(model_variant.upper())))
         except:
             print('\n##########################################################################################################')
             print('Desired model "EfficientPose{0}Lite" not available in PyTorch. Please select among "RT", "I", "II", "III" or "IV".'.format(model_variant.split('lite')[0].upper()))
