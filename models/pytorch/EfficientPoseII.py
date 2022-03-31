@@ -1,4 +1,4 @@
-from utils import helpers
+from utils import torch_helpers
 
 import numpy as np
 import torch
@@ -1079,4 +1079,4 @@ class KitModel(nn.Module):
 
     @staticmethod
     def __transposed(channels, kernel_size, stride):
-        return helpers.pytorch_BilinearConvTranspose2d(channels=channels, kernel_size=kernel_size, stride=stride)
+        return torch_helpers.pytorch_BilinearConvTranspose2d(channels=channels, kernel_size=kernel_size, stride=stride)

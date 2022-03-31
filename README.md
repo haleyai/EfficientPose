@@ -9,7 +9,8 @@
 
 ### 1. Plug
 
-Assuming you have [Python](https://www.python.org/downloads/) (>= 3.6) and [FFMPEG](http://ffmpeg.org/download.html) (>= 4.2) preinstalled, simply run: 
+Assuming you have [Python](https://www.python.org/downloads/) (>= 3.6), 
+[FFMPEG](http://ffmpeg.org/download.html) (>= 4.2) and mediainfo library preinstalled, simply run: 
 
 ```pip install -r requirements.txt```
 
