@@ -16,7 +16,7 @@ setup(
     ],
     extras_require = {
         'torch_models':  ["torch"],
-    }    
+    }, 
     packages=['efficientpose', 'efficientpose.utils'],
     package_dir={'efficientpose': '.', 'efficientpose.utils': 'utils'},
     package_data={'efficientpose': ['models/keras/*', 'models/pytorch/*', 'models/tensorflow/*', 'models/tflite/*']}
