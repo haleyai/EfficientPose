@@ -2,12 +2,19 @@ import sys
 from getopt import getopt, error
 from os.path import join, normpath
 from pymediainfo import MediaInfo
+import PIL
 import numpy as np
 import time
 import pkg_resources
 
 from .utils import helpers
 
+
+class UnsupportedImageFormatError(ValueError):
+    pass
+
+class UnsupportedImageDepthError(ValueError):
+    pass
 
 def get_model(framework, model_variant):
     """
@@ -41,14 +48,16 @@ def get_model(framework, model_variant):
     # TensorFlow
     elif framework in ['tensorflow', 'tf']:
         from tensorflow.python.platform.gfile import FastGFile
-        from tensorflow.compat.v1 import GraphDef
+        from tensorflow.compat.v1 import GraphDef, Session, ConfigProto
         from tensorflow.compat.v1.keras.backend import get_session
         from tensorflow import import_graph_def
         f = FastGFile(join(model_path, 'tensorflow', 'EfficientPose{0}.pb'.format(model_variant.upper())), 'rb')
         graph_def = GraphDef()
         graph_def.ParseFromString(f.read())
         f.close()
-        model = get_session()
+        config = ConfigProto()
+        config.gpu_options.allow_growth = True
+        model = Session(config=config)
         model.graph.as_default()
         import_graph_def(graph_def)
     
@@ -216,9 +225,13 @@ def analyze_image(image_path_or_data, model, framework, resolution, lite):
         image_height, image_width = image.shape[:2]
     except AttributeError:
         # Load image
-        from PIL import Image
-        image = np.array(Image.open(image_path_or_data))
+        try:
+            image = np.array(PIL.Image.open(image_path_or_data))
+        except PIL.UnidentifiedImageError:
+            raise UnsupportedImageFormatError()
         image_height, image_width = image.shape[:2]
+    if image.ndim < 3 or image.shape[2] != 3:
+        raise UnsupportedImageDepthError()
 
     batch = np.expand_dims(image, axis=0)
 
