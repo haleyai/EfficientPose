@@ -18,7 +18,7 @@ class UnsupportedImageDepthError(ValueError):
     pass
 
 
-def get_model(framework, model_variant):
+def get_model(framework, model_variant, limit_gpu_memory_mb=None):
     """
     Load the desired EfficientPose model variant using the requested deep learning framework.
     
@@ -49,20 +49,38 @@ def get_model(framework, model_variant):
     
     # TensorFlow
     elif framework in ['tensorflow', 'tf']:
+        # limit GPU memory
+        if limit_gpu_memory_mb is not None:
+            import tensorflow as tf
+            gpus = tf.config.list_physical_devices('GPU')
+            if gpus:
+                assert len(gpus) == 1
+                try:
+                    tf.config.set_logical_device_configuration(
+                        gpus[0],
+                        [tf.config.LogicalDeviceConfiguration(memory_limit=limit_gpu_memory_mb)])
+                    logical_gpus = tf.config.list_logical_devices('GPU')
+                    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+                except RuntimeError as e:
+                    # Virtual devices must be set before GPUs have been initialized
+                    print(e)
+
         from tensorflow.python.platform.gfile import FastGFile
-        from tensorflow.compat.v1 import GraphDef, Session, ConfigProto
-        from tensorflow.compat.v1.keras.backend import get_session
+        from tensorflow.compat.v1 import GraphDef, Session
         from tensorflow import import_graph_def
         f = FastGFile(join(model_path, 'tensorflow', 'EfficientPose{0}.pb'.format(model_variant.upper())), 'rb')
         graph_def = GraphDef()
         graph_def.ParseFromString(f.read())
         f.close()
-        config = ConfigProto()
-        config.gpu_options.allow_growth = True
-        model = Session(config=config)
+        # # set tf to allocate GPU memory on-the-go as needed (otherwise tf allocates all GPU memory)
+        # from tensorflow.compat.v1 import ConfigProto
+        # config = ConfigProto()
+        # config.gpu_options.allow_growth = True
+        # model = Session(config=config)
+        model = Session()
         model.graph.as_default()
         import_graph_def(graph_def)
-    
+
     # TensorFlow Lite
     elif framework in ['tensorflowlite', 'tflite']:
         from tensorflow import lite
