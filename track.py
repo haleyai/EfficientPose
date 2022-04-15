@@ -13,8 +13,10 @@ from .utils import helpers
 class UnsupportedImageFormatError(ValueError):
     pass
 
+
 class UnsupportedImageDepthError(ValueError):
     pass
+
 
 def get_model(framework, model_variant):
     """
@@ -87,6 +89,7 @@ def get_model(framework, model_variant):
             
     return model, {'rt': 224, 'i': 256, 'ii': 368, 'iii': 480, 'iv': 600, 'rt_lite': 224, 'i_lite': 256, 'ii_lite': 368}[model_variant]
 
+
 def infer(batch, model, lite, framework):
     """
     Perform inference on supplied image batch.
@@ -114,12 +117,15 @@ def infer(batch, model, lite, framework):
     
     # TensorFlow
     elif framework in ['tensorflow', 'tf']:
+        import tensorflow as tf
+        # tf.profiler.experimental.start('logdir')
         output_tensor = model.graph.get_tensor_by_name('upscaled_confs/BiasAdd:0')
         if lite:
             batch_outputs = model.run(output_tensor, {'input_1_0:0': batch})            
         else:
             batch_outputs = model.run(output_tensor, {'input_res1:0': batch})
-    
+        # tf.profiler.experimental.stop()
+
     # TensorFlow Lite
     elif framework in ['tensorflowlite', 'tflite']:
         input_details = model.get_input_details()
